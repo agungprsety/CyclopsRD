@@ -8,8 +8,8 @@ const CONFIG = {
     startCenter: [-1.61, 103.6],
     startZoom: 13,
     tileUrl: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    offlineTileUrl: 'assets/tiles/{z}/{x}/{y}.png',
-    roadData: 'data/jambi_roads.geojson'
+    offlineTileUrl: '/assets/tiles/{z}/{x}/{y}.png',
+    roadData: '/data/jambi_roads.geojson'
 };
 
 // --- State ---
@@ -318,7 +318,7 @@ async function loadBaseRoads() {
 
 async function initAnomalies() {
     try {
-        const res = await fetch('data/anomalies.json');
+        const res = await fetch('/data/anomalies.json');
         if (!res.ok) {
             console.warn('anomalies.json not found, using fallback data');
             renderAnomalyMarkers([
@@ -555,7 +555,7 @@ let alignmentChart = null;
 
 async function initDashboard() {
     try {
-        const response = await fetch('data/district_summary.json');
+        const response = await fetch('/data/district_summary.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();

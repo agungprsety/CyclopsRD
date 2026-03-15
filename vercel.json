@@ -5,7 +5,20 @@
     { "source": "/css/(.*)", "destination": "/frontend/css/$1" },
     { "source": "/js/(.*)", "destination": "/frontend/js/$1" },
     { "source": "/data/(.*)", "destination": "/frontend/data/$1" },
-    { "source": "/assets/(.*)", "destination": "/frontend/assets/$1" },
-    { "source": "/frontend/(.*)", "destination": "/frontend/$1" }
+    { "source": "/assets/(.*)", "destination": "/frontend/assets/$1" }
+  ],
+  "headers": [
+    {
+      "source": "/data/(.*).json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "source": "/data/(.*).geojson",
+      "headers": [
+        { "key": "Content-Type", "value": "application/geo+json" }
+      ]
+    }
   ]
 }
