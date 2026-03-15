@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyclopsRD | Decision Audit Dashboard</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css?v=11">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Top Overlay -->
+    <header class="top-overlay">
+        <div class="logo">
+            <span class="logo-accent">Cyclops</span>RD
+        </div>
+        <div class="search-container">
+            <input type="text" id="road-search" placeholder="Search road name or ID...">
+            <div id="search-results" class="search-results hidden"></div>
+        </div>
+        <nav class="layer-toggles">
+            <div class="toggle-group">
+                <span class="toggle-label">View Mode:</span>
+                <button id="mode-priority" class="btn-toggle active">Priority</button>
+                <button id="mode-allocation" class="btn-toggle">Allocation</button>
+                <button id="mode-audit" class="btn-toggle">Audit</button>
+            </div>
+            <div class="divider"></div>
+            <button id="toggle-roads" class="btn-toggle active">Full Links</button>
+            <button id="toggle-stationing" class="btn-toggle">Stationing</button>
+            <button id="toggle-dashboard" class="btn-toggle btn-accent">📊 Dashboard</button>
+        </nav>
+    </header>
+
+    <!-- Dashboard Overlay -->
+    <div id="dashboard-overlay" class="dashboard-overlay hidden">
+        <div class="dashboard-content">
+            <button id="close-dashboard" class="btn-close-large">&times;</button>
+            <div class="dashboard-header">
+                <h2>District Comparative Audit</h2>
+                <p>Analyzing Engineering Need vs. Financial Allocation across Jambi Districts</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="chart-card large">
+                    <h3>Engineering Need vs. Allocation (%)</h3>
+                    <div class="chart-container">
+                        <canvas id="need-alloc-chart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Decision Alignment Score per District</h3>
+                    <div class="chart-container">
+                        <canvas id="alignment-district-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <main id="map"></main>
+
+    <!-- Audit Stats Overview -->
+    <div class="audit-stats-overlay">
+        <h4>Audit Summary</h4>
+        <div class="stat-row">
+            <span>Analyzed Links</span>
+            <span class="stat-value">961</span>
+        </div>
+        <div class="stat-row">
+            <span>Avg Alignment</span>
+            <span class="stat-value">84.2%</span>
+        </div>
+        <div class="stat-row">
+            <span>Significant Gaps</span>
+            <span class="stat-value danger">12</span>
+        </div>
+    </div>
+
+    <!-- Legend Overlay -->
+    <div id="legend" class="map-legend">
+        <h4>Engineering Need</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background:#ff4d6d"></div><span>High Priority</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background:#f6ad55"></div><span>Medium Priority</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background:#00d4aa"></div><span>Maintenance Only</span>
+        </div>
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
+        <h4>Decision Audit</h4>
+        <div class="legend-item"><span>⚪ Aligned</span></div>
+        <div class="legend-item"><span>🟡 Moderate Gap</span></div>
+        <div class="legend-item"><span>🔴 Significant Gap</span></div>
+    </div>
+
+    <!-- Side Panel (Road Details) -->
+    <aside id="side-panel" class="panel hidden">
+        <button id="close-panel" class="btn-close">&times;</button>
+        <div id="panel-content">
+            <!-- Dynamic Content -->
+        </div>
+    </aside>
+
+
+
+
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Application Scripts -->
+    <script src="js/app.js?v=17"></script>
+</body>
+
+</html>
