@@ -24,9 +24,12 @@ htmlcov/
 data/*.graphml
 data/*.geojson
 data/*.json
+
+# EXCEPTIONS: Files required for Vercel frontend
+!data/jambi_roads.geojson
+!data/district_summary.json
+!data/anomalies.json
 !data/README.md
-frontend/data/*.geojson
-frontend/data/*.json
 
 # Cache
 cache/

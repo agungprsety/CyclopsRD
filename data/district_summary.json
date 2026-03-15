@@ -1,0 +1,92 @@
+{
+  "Alam Barajo":{
+    "eng_need_total":12058.404470394,
+    "alloc_total":5489.2953607744,
+    "avg_alignment":97.9797979798,
+    "gap":0.0404040404,
+    "need_pct":9.0053194231,
+    "alloc_pct":4.3395800587,
+    "gap_pct":-4.6657393644
+  },
+  "Danau Sipin":{
+    "eng_need_total":3091.5894160702,
+    "alloc_total":429.7909664326,
+    "avg_alignment":97.0588235294,
+    "gap":0.0588235294,
+    "need_pct":2.3088253745,
+    "alloc_pct":0.3397726274,
+    "gap_pct":-1.9690527471
+  },
+  "Danau Teluk":{
+    "eng_need_total":10016.3884532784,
+    "alloc_total":16693.9722622346,
+    "avg_alignment":100.0,
+    "gap":0.0,
+    "need_pct":7.4803244251,
+    "alloc_pct":13.197473331,
+    "gap_pct":5.7171489059
+  },
+  "Jambi Selatan":{
+    "eng_need_total":22866.7114330704,
+    "alloc_total":25132.218739871,
+    "avg_alignment":98.2608695652,
+    "gap":-0.0531400966,
+    "need_pct":17.0770553531,
+    "alloc_pct":19.8683561562,
+    "gap_pct":2.7913008031
+  },
+  "Jambi Timur":{
+    "eng_need_total":8487.8296421876,
+    "alloc_total":6861.5333586031,
+    "avg_alignment":100.0,
+    "gap":0.0,
+    "need_pct":6.3387836529,
+    "alloc_pct":5.4244072104,
+    "gap_pct":-0.9143764425
+  },
+  "Jelutung":{
+    "eng_need_total":12506.3707946466,
+    "alloc_total":14307.4792091722,
+    "avg_alignment":97.4566473988,
+    "gap":-0.0057803468,
+    "need_pct":9.3398644991,
+    "alloc_pct":11.3108235913,
+    "gap_pct":1.9709590922
+  },
+  "Kota Baru":{
+    "eng_need_total":17639.0559452179,
+    "alloc_total":7904.4371682746,
+    "avg_alignment":99.0740740741,
+    "gap":0.0185185185,
+    "need_pct":13.1729975967,
+    "alloc_pct":6.2488781631,
+    "gap_pct":-6.9241194336
+  },
+  "Paal Merah":{
+    "eng_need_total":24272.8718058918,
+    "alloc_total":36983.4198145638,
+    "avg_alignment":96.1666666667,
+    "gap":-0.1333333333,
+    "need_pct":18.1271879264,
+    "alloc_pct":29.2373611878,
+    "gap_pct":11.1101732614
+  },
+  "Pasar Jambi":{
+    "eng_need_total":8584.3627826044,
+    "alloc_total":9125.385508408,
+    "avg_alignment":97.1084337349,
+    "gap":-0.0180722892,
+    "need_pct":6.4108754264,
+    "alloc_pct":7.2141027905,
+    "gap_pct":0.8032273641
+  },
+  "Telanaipura":{
+    "eng_need_total":14379.5441059669,
+    "alloc_total":3566.1671523694,
+    "avg_alignment":96.2765957447,
+    "gap":0.0744680851,
+    "need_pct":10.7387663227,
+    "alloc_pct":2.8192448836,
+    "gap_pct":-7.9195214391
+  }
+}
