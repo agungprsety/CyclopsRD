@@ -126,6 +126,8 @@ A full-screen modal with interactive Chart.js charts comparing **Length-Weighted
 > See [`methodology_overview.md`](methodology_overview.md) for the full technical deep-dive.
 
 ### Step 1: Engineering Priority Score
+> **Implementation:** [`pipeline/03_score_and_rank.py`](pipeline/03_score_and_rank.py)
+
 A weighted sum of 6 geospatial metrics, yielding a score from 0–1 for every road segment:
 
 ```
@@ -136,15 +138,19 @@ Priority = 0.25 × Hierarchy + 0.20 × Betweenness + 0.20 × Length
 Every segment receives a **globally unique rank** (1 = most critical) using deterministic micro-jitter to break ties.
 
 ### Step 2: Political Allocation Simulation
+> **Implementation:** [`pipeline/04_simulate_allocation.py`](pipeline/04_simulate_allocation.py)
+
 We inject **real political data** — the 2024 DPRD Kota Jambi election results — mapping **45 legislative seats** across 5 Electoral Districts (Dapil) to the 11 Kecamatans. Districts with more political representation receive a bias modifier that inflates their allocation propensity.
 
 ```
-Propensity = (Inverted Engineering Rank) + (Political Bias from DPRD Seats) + (Jitter)
+Propensity = (Inverted Engineering Rank ^ 0.8) × (1.0 + Political Bias) + Jitter
 ```
 
 The top **25%** of roads by Propensity Score are marked as **Allocated**. The rest are **Unallocated**.
 
 ### Step 3: The Decision Audit
+> **Implementation:** [`pipeline/05_calculate_gap.py`](pipeline/05_calculate_gap.py)
+
 We compare the pure engineering rank against the politically-influenced allocation to determine if each decision was **just** or **biased**.
 
 | Scenario | Engineering Priority | Allocation Status | Verdict |

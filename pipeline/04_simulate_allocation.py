@@ -88,20 +88,22 @@ def simulate_allocation():
         'Paal Merah': 12      # Dapil 5
     }
     
-    # Introduce dramatic favoritism for demo purposes
-    # Factors: 1.0 (Neutral), >1.0 (Favored), <1.0 (Neglected)
-    district_multipliers = {
-        'Paal Merah': 1.8,    # Highly favored (e.g., strategic growth hotspot)
-        'Jambi Selatan': 1.5, # Strong political influence
-        'Alam Barajo': 1.2,   # Moderate support
-        'Telanaipura': 0.4,   # Significant neglect/deferred
-        'Kota Baru': 0.5,      # Deprioritized 
-        'Danau Sipin': 0.7,
-        'Jambi Timur': 1.0,
-        'Pasar Jambi': 0.9,
-        'Jelutung': 1.1,
-        'Danau Teluk': 0.8
-    }
+    # Calculate empirical multipliers purely based on DPRD seat distribution
+    # Average seats per Dapil = 9 (45 total / 5 Dapils)
+    # The README states: Propensity = Inverted Rank + ((Seats - 9) / 9) * 0.3 + Jitter
+    
+    avg_seats = 9.0
+    district_multipliers = {}
+    
+    for dist, seats in dapil_seats.items():
+        # Baseline is 1.0. A district with 12 seats gets a +10% boost (1.1). 
+        # A district with 6 seats gets a -10% penalty (0.9).
+        bias_effect = ((seats - avg_seats) / avg_seats) * 0.3
+        district_multipliers[dist] = 1.0 + bias_effect
+        
+    print("Computed Political Bias Multipliers from DPRD Seats:")
+    for dist, mult in district_multipliers.items():
+        print(f"  {dist}: {mult:.3f} (Seats: {dapil_seats.get(dist, 0)})")
     
     print("Applying dramatic demo biases and simulating binary allocation...")
     def get_allocation_propensity(row):

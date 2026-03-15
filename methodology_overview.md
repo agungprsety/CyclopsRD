@@ -26,6 +26,7 @@ The pipeline proceeds in three stages:
 ---
 
 ## Stage 1: Engineering Priority Score
+> **Implementation:** [`pipeline/03_score_and_rank.py`](pipeline/03_score_and_rank.py)
 
 ### What It Measures
 The Engineering Priority Score quantifies the **objective infrastructure importance** of every road segment in the network. A road with a high score is one that — from a pure engineering standpoint — should receive maintenance priority.
@@ -90,14 +91,15 @@ We use the actual seat distribution from the 2024 Regional People's Representati
 Districts with **more legislative seats** have greater political influence over municipal budget allocation. Their roads are more likely to receive maintenance funding — even if they don't rank highest in engineering priority.
 
 ### The Allocation Propensity Formula
+> **Implementation:** [`pipeline/04_simulate_allocation.py`](pipeline/04_simulate_allocation.py)
 
 ```
-Allocation Propensity = Inverted Engineering Rank + Political Bias + Random Jitter
+Allocation Propensity = (Inverted Engineering Rank ^ 0.8) × (1.0 + Political Bias) + Jitter
 
 Where:
   Inverted Rank = (MaxRank - Rank) / MaxRank     ← Higher priority = higher propensity
-  Political Bias = ((DapilSeats - 9) / 9) × 0.3  ← Scaled deviation from average seats
-  Jitter = Uniform(-0.05, +0.05)                 ← Simulates real-world noise
+  Political Bias = ((DapilSeats - 9) / 9) × 0.3  ← Scaled from DPRD seat distribution
+  Jitter = Uniform(-0.1, +0.1)                  ← Simulates real-world noise/irregularities
 ```
 
 ### Budget Constraint
@@ -118,6 +120,7 @@ The political bias means that some **high-priority roads in under-represented di
 ---
 
 ## Stage 3: The Decision Audit
+> **Implementation:** [`pipeline/05_calculate_gap.py`](pipeline/05_calculate_gap.py)
 
 ### What We're Measuring
 
