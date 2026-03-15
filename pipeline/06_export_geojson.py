@@ -39,7 +39,7 @@ def export_data():
     gdf_roads = gdf_edges[existing_cols].copy()
     
     # Ensure numeric columns are actually numeric for JS to parse easily
-    numeric_cols = ['priority_score', 'rank', 'allocation_score', 'allocation_rank', 'gap', 'alignment_score']
+    numeric_cols = ['priority_score', 'rank', 'is_allocated', 'allocation_score', 'allocation_rank', 'gap', 'alignment_score']
     for col in numeric_cols:
         if col in gdf_roads.columns:
             gdf_roads[col] = pd.to_numeric(gdf_roads[col], errors='coerce').fillna(0)

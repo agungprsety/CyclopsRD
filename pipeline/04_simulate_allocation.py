@@ -88,32 +88,42 @@ def simulate_allocation():
         'Paal Merah': 12      # Dapil 5
     }
     
-    # Calculate political influence factor based on seats relative to average
-    unique_dapils = [6, 8, 8, 11, 12] # Dapil 1 to 5 seats
-    total_seats = sum(unique_dapils) # 45 seats total
-    average_seats = total_seats / len(unique_dapils) # 9 seats avg per dapil
+    # Introduce dramatic favoritism for demo purposes
+    # Factors: 1.0 (Neutral), >1.0 (Favored), <1.0 (Neglected)
+    district_multipliers = {
+        'Paal Merah': 1.8,    # Highly favored (e.g., strategic growth hotspot)
+        'Jambi Selatan': 1.5, # Strong political influence
+        'Alam Barajo': 1.2,   # Moderate support
+        'Telanaipura': 0.4,   # Significant neglect/deferred
+        'Kota Baru': 0.5,      # Deprioritized 
+        'Danau Sipin': 0.7,
+        'Jambi Timur': 1.0,
+        'Pasar Jambi': 0.9,
+        'Jelutung': 1.1,
+        'Danau Teluk': 0.8
+    }
     
-    def calculate_political_bias(kecamatan_name):
-        seats = dapil_seats.get(kecamatan_name, 0)
-        if seats == 0:
-            return 0.0
-        
-        # Influence = % deviation from average seats, scaled down
-        # A Dapil with 12 seats vs 9 avg = (12-9)/9 = +33% -> +0.10 bias
-        influence_factor = (seats - average_seats) / average_seats
-        return influence_factor * 0.3 
-
-    default_bias = 0.0
-    
-    print("Applying Dapil-based biases and simulating binary allocation...")
+    print("Applying dramatic demo biases and simulating binary allocation...")
     def get_allocation_propensity(row):
-        bias = calculate_political_bias(row['kecamatan'])
-        # Propensity Score = Technical Rank (inverted) + Political Bias + Tiny Jitter
-        # We invert rank so high priority = high score
+        # Base Propensity: Engineering Rank (inverted)
         max_rank = gdf_edges['rank'].max()
         inverted_rank = (max_rank - row['rank']) / max_rank
-        jitter = random.uniform(-0.05, 0.05)
-        return inverted_rank + bias + jitter
+        
+        # Apply district-specific multiplier
+        target_dist = row['kecamatan']
+        multiplier = district_multipliers.get(target_dist, 1.0)
+        
+        # Add a "High Influence" bonus for segments near certain nodes/hotspots if we wanted, 
+        # but district-level is clearer for the dashboard.
+        
+        # Final Score = (Technical Rank^0.8) * Multiplier + Noise
+        # Using power < 1 makes the rank differences slightly less dominant than political bias
+        propensity = (inverted_rank ** 0.8) * multiplier
+        
+        # Add random noise to simulate 'irregularities'
+        noise = random.uniform(-0.1, 0.1)
+        
+        return propensity + noise
 
     gdf_edges['allocation_propensity'] = gdf_edges.apply(get_allocation_propensity, axis=1)
     

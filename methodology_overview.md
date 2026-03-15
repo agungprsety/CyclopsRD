@@ -61,7 +61,7 @@ In a real municipal budget, two roads cannot share the same rank — one must be
 1. A **deterministic micro-jitter** (uniform random noise, seed=42, magnitude <10⁻⁶) is added to each score
 2. Pandas `rank(method='first')` is applied to resolve any remaining ties by order of appearance
 
-Result: Every road segment receives a unique rank from **1** (most critical) to **N** (least critical), where N = total segments in the network (currently 1,015 segments in Kota Jambi).
+Result: Every road segment receives a unique rank from **1** (most critical) to **N** (least critical), where N = total segments in the network (currently 1,038 segments in Kota Jambi, spanning 412.6 km).
 
 ---
 
@@ -105,7 +105,7 @@ Where:
 Municipal budgets are finite. We model this by allocating funding to only the **top 25%** of road segments ranked by Propensity Score:
 
 ```python
-budget_count = int(len(all_roads) * 0.25)  # ≈ 254 of 1,015 segments
+budget_count = int(len(all_roads) * 0.25)  # ≈ 260 of 1,038 segments
 funded = roads.sort_values('propensity', ascending=False).head(budget_count)
 ```
 

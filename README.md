@@ -12,6 +12,10 @@
 
 ---
 
+> ⚠️ **Proof of Concept Disclaimer:** The financial allocation patterns and "transparency gaps" shown in this project are **mathematically simulated** using real political representation metrics (DPRD 2024 seats). They are designed to demonstrate the capability of the Decision Audit Engine and **do not reflect actual historical government spending, intentional neglect, or official audits** of the Kota Jambi government.
+
+---
+
 ## 🧠 The Problem
 
 > Trillions are spent globally on road infrastructure every year.
@@ -150,6 +154,8 @@ We compare the pure engineering rank against the politically-influenced allocati
 | Top 25% Need + Not Funded | ✅ High | ❌ Unallocated | 🟡 **Neglect** |
 | Bottom 50% Need + Funded | ❌ Low | ✅ Allocated | 🔴 **Favoritism** |
 
+> **The Story is in the Tails:** While an average alignment score might seem relatively high city-wide, CyclopsRD is designed to find the critical outliers where the system breaks down. In our Jambi data, the system successfully exposed **108 flagged segments**, comprising **41 neglected high-priority roads** and **12 clear instances of political favoritism**.
+
 ---
 
 ## 📊 Real Data Sources
@@ -158,7 +164,7 @@ This is **not** a toy demo. CyclopsRD is anchored to real-world data:
 
 | Source | What It Provides | How We Use It |
 |---|---|---|
-| **OpenStreetMap** (via OSMnx) | Road network graph: 1,015 segments with hierarchy, lanes, surface | Engineering Priority Score |
+| **OpenStreetMap** (via OSMnx) | Road network graph: 1,038 segments (412.6 km) with hierarchy, lanes, surface | Engineering Priority Score |
 | **Official Jambi GeoJSON** | 11 Kecamatan administrative boundaries | District-level aggregation |
 | **2024 DPRD Kota Jambi Election** | 45 seats across 5 Dapils, mapped to Kecamatans | Political Bias Factor |
 
@@ -178,13 +184,19 @@ This is **not** a toy demo. CyclopsRD is anchored to real-world data:
 
 ## 🚀 Quick Start
 
-### View the Dashboard (No Setup Required)
+### View the Dashboard (Locally)
 
 ```bash
 cd frontend
 python -m http.server 8000
 # Open http://localhost:8000
 ```
+
+### 🌍 One-Click Deploy (Vercel)
+CyclopsRD is pre-configured for zero-downtime static deployment. Simply push the repository to GitHub and import it into Vercel. Our pre-configured `vercel.json` automatically routes the `/frontend` directory to the root.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2A%2Agithub.com%2Fagungprsety%2FCyclopsRD)
+
 
 ### Run the Full Pipeline
 

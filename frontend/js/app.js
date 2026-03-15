@@ -9,14 +9,12 @@ const CONFIG = {
     startZoom: 13,
     tileUrl: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     offlineTileUrl: 'assets/tiles/{z}/{x}/{y}.png',
-    roadData: 'data/jambi_roads.geojson',
-    stationingData: 'data/jalan_stationing_slim.geojson'
+    roadData: 'data/jambi_roads.geojson'
 };
 
 // --- State ---
 let map;
-let roadLayer, stationingLayer;
-let currentView = 'roads'; // 'roads' or 'stationing'
+let roadLayer;
 let currentMode = 'priority'; // 'priority', 'allocation', 'audit'
 let auditDataMap = new Map(); // Store pre-calculated audit results for performance
 
@@ -37,324 +35,7 @@ function initMap() {
     L.tileLayer(activeTileUrl, { maxZoom: 19 }).addTo(map);
 }
 
-async function loadBaseRoads() {
-    try {
-        const res = await fetch(CONFIG.roadData);
-        const geo = await res.json();
 
-        // Initialize Search Index
-        initSearch(geo.features);
-
-        // PERFORMANCE: Pre-calculate all audit results
-        geo.features.forEach(f => {
-            const id = f.properties.id || `f_${Math.random().toString(36).substr(2, 9)}`;
-            f.properties.uid = id; // Ensure a unique ID
-            auditDataMap.set(id, getAuditMetrics(f.properties));
-        });
-
-        roadLayer = L.geoJSON(geo, {
-            style: (feature) => {
-                return getFeatureStyle(feature);
-            },
-            onEachFeature: (feature, layer) => {
-                const audit = auditDataMap.get(feature.properties.uid);
-                const roadName = feature.properties.name || feature.properties.Name || 'Unnamed Link';
-                
-                layer.bindTooltip(`
-                    <div class="tooltip-title">${roadName}</div>
-                    <div class="tooltip-info">${currentMode === 'audit' ? 'Alignment' : 'Score'}: <span class="tooltip-score">${currentMode === 'audit' ? audit.alignmentScore : (currentMode === 'allocation' ? audit.alloRank : audit.engRank)}</span></div>
-                `, { sticky: true });
-
-                layer.on({
-                    mouseover: (e) => {
-                        const l = e.target;
-                        l.setStyle({ weight: 10, color: '#ffffff', opacity: 1 });
-                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                            l.bringToFront();
-                        }
-                    },
-                    mouseout: (e) => {
-                        const l = e.target;
-                        roadLayer.resetStyle(l);
-                    },
-                    click: (e) => {
-                        openDetailPanel(feature.properties, 'link');
-                        L.DomEvent.stopPropagation(e);
-                    }
-                });
-            }
-        }).addTo(map);
-
-        // Add Anomalous Hotspots for Demo
-        initAnomalies();
-
-    } catch (err) {
-        console.error("Link load error:", err);
-    }
-}
-
-function initAnomalies() {
-    const anomalies = [
-        { lat: -1.6153, lng: 103.5852, name: "ID_00120 - High Gap", score: 42 },
-        { lat: -1.6028, lng: 103.5748, name: "ID_00450 - Significant Deviance", score: 38 },
-        { lat: -1.5952, lng: 103.5735, name: "ID_00890 - Allocation Anomaly", score: 31 }
-    ];
-
-    anomalies.forEach(a => {
-        const icon = L.divIcon({
-            className: 'pulse-marker',
-            iconSize: [20, 20]
-        });
-        L.marker([a.lat, a.lng], { icon: icon })
-            .addTo(map)
-            .bindTooltip(`<strong>${a.name}</strong><br>Alignment Score: ${a.score}/100`, {
-                direction: 'top',
-                offset: [0, -10]
-            });
-    });
-}
-
-// Lazy Load Stationing
-async function loadStationing() {
-    if (stationingLayer) return;
-
-    const btn = document.getElementById('toggle-stationing');
-    btn.innerText = 'Loading...';
-    btn.disabled = true;
-
-    try {
-        const res = await fetch(CONFIG.stationingData);
-        const geo = await res.json();
-        stationingLayer = L.geoJSON(geo, {
-            style: (feature) => {
-                return getFeatureStyle(feature);
-            },
-            onEachFeature: (feature, layer) => {
-                const audit = auditDataMap.get(feature.properties.id) || getAuditMetrics(feature.properties);
-                const roadName = feature.properties.name || feature.properties.Name || 'Unnamed Link';
-                
-                layer.bindTooltip(`
-                    <div class="tooltip-title">${roadName}</div>
-                    <div class="tooltip-info">STA: ${feature.properties.STA_Start} - ${feature.properties.STA_End}</div>
-                    <div class="tooltip-info">${currentMode === 'audit' ? 'Alignment' : 'Score'}: <span class="tooltip-score">${currentMode === 'audit' ? audit.alignmentScore : (currentMode === 'allocation' ? audit.alloRank : audit.engRank)}</span></div>
-                `, { sticky: true });
-
-                layer.on({
-                    mouseover: (e) => {
-                        const l = e.target;
-                        l.setStyle({ weight: 8, color: '#ffffff', opacity: 1 });
-                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                            l.bringToFront();
-                        }
-                    },
-                    mouseout: (e) => {
-                        stationingLayer.resetStyle(e.target);
-                    },
-                    click: (e) => {
-                        openDetailPanel(feature.properties, 'stationing');
-                        L.DomEvent.stopPropagation(e);
-                    }
-                });
-            }
-        });
-        btn.innerText = 'Stationing';
-        btn.disabled = false;
-        switchLayer('stationing');
-    } catch (err) {
-        console.error("Stationing load error:", err);
-        btn.innerText = 'Error Loading';
-    }
-}
-
-function switchLayer(view) {
-    currentView = view;
-
-    // Toggle Button States
-    document.getElementById('toggle-roads').classList.toggle('active', view === 'roads');
-    document.getElementById('toggle-stationing').classList.toggle('active', view === 'stationing');
-
-    // Manage Map Layers
-    if (view === 'roads') {
-        if (stationingLayer) map.removeLayer(stationingLayer);
-        map.addLayer(roadLayer);
-    } else {
-        if (roadLayer) map.removeLayer(roadLayer);
-        if (stationingLayer) map.addLayer(stationingLayer);
-        else loadStationing(); // Trigger lazy load
-    }
-}
-
-/**
- * Decision Audit Simulation
- * Now updated to use real properties from GeoJSON if available.
- */
-function getAuditMetrics(props) {
-    // Check if we have real data in props
-    const hasRealData = props.rank !== undefined;
-
-    if (hasRealData) {
-        const engRank = parseInt(props.rank);
-        const alloRank = parseInt(props.allocation_rank);
-        const alignmentScore = Math.round(parseFloat(props.alignment_score));
-        
-        let flag = { label: 'Aligned', class: 'flag-aligned', icon: '⚪' };
-        if (alignmentScore < 75) flag = { label: 'Moderate', class: 'flag-moderate', icon: '🟡' };
-        if (alignmentScore < 40) flag = { label: 'Significant', class: 'flag-significant', icon: '🔴' };
-
-        // Scale factors logic: since pipeline factor is 0-1, we display as %
-        const factors = [
-            { name: 'Priority Index', val: Math.round((parseFloat(props.priority_score) || 0) * 100) },
-            { name: 'Allocation Basis', val: Math.round((parseFloat(props.allocation_score) || 0) * 100) },
-            { name: 'Gap Magnitude', val: Math.min(100, Math.abs(engRank - alloRank)) },
-            { name: 'Connectivity', val: 50 + (parseInt(props.rank) % 40) }, // fallback
-            { name: 'Reliability', val: 90 }
-        ];
-
-        return { engRank, alloRank, alignmentScore, flag, factors, confidence: 'HIGH' };
-    }
-
-    // Fallback/Deterministic seed for elements without pipe data
-    const seed = parseInt(props.id?.split('_')[1] || '0') || 42;
-    const engRank = 10 + (seed % 200);
-    const alloRank = engRank + ((seed % 15) - 7);
-    const gap = Math.abs(engRank - alloRank);
-    const alignmentScore = Math.max(0, Math.min(100, 100 - (gap * 3)));
-
-    let flag = { label: 'Aligned', class: 'flag-aligned', icon: '⚪' };
-    if (alignmentScore < 75) flag = { label: 'Moderate', class: 'flag-moderate', icon: '🟡' };
-    if (alignmentScore < 50) flag = { label: 'Significant', class: 'flag-significant', icon: '🔴' };
-
-    const factors = [
-        { name: 'Hierarchy', val: 60 + (seed % 40) },
-        { name: 'Volume', val: 40 + ((seed * 7) % 55) },
-        { name: 'Lanes', val: (seed % 4 === 0) ? 90 : 50 },
-        { name: 'Density', val: 30 + ((seed * 3) % 65) },
-        { name: 'Pavement', val: 20 + ((seed * 9) % 75) }
-    ];
-
-    return { engRank, alloRank, alignmentScore, flag, factors, confidence: 'MEDIUM' };
-}
-
-/**
- * Generates plain-language explanation for a road's audit status.
- */
-function generateExplanation(audit, props, isStationing) {
-    if (isStationing) {
-        return `Audit Segment: <strong>STA ${props.STA_Start} - ${props.STA_End}</strong>. This specific 25m section accounts for <strong>Rank #${audit.engRank}</strong> in the infrastructure maintenance queue based on localized pavement distress.`;
-    }
-
-    const sortedFactors = [...audit.factors].sort((a, b) => b.val - a.val);
-    const primary = sortedFactors[0];
-    const rankDiff = audit.alloRank - audit.engRank;
-
-    let sentiment = "";
-    if (Math.abs(rankDiff) <= 20) {
-        sentiment = `This link is <strong>closely aligned</strong> with technical engineering requirements.`;
-    } else if (rankDiff > 0) {
-        sentiment = `This link is currently <strong>under-prioritized</strong> by ${rankDiff} ranks compared to its engineering necessity.`;
-    } else {
-        sentiment = `This link is <strong>over-prioritized</strong> (favored) by ${Math.abs(rankDiff)} ranks relative to its calculated technical score.`;
-    }
-
-    const districtInfo = props.kecamatan && props.kecamatan !== 'Unknown' ? ` in <strong>${props.kecamatan}</strong>` : '';
-
-    return `
-        ${sentiment} The <strong>${primary.name}</strong> is the strongest contributor to its status${districtInfo}. 
-        It ranks as #<strong>${audit.engRank}</strong> out of all segments in the city's network.
-    `;
-}
-
-function openDetailPanel(props, type) {
-    const panel = document.getElementById('side-panel');
-    const content = document.getElementById('panel-content');
-    const isStationing = type === 'stationing';
-
-    // Get simulated audit data
-    const audit = getAuditMetrics(props);
-    const explanationText = generateExplanation(audit, props, isStationing);
-
-    content.innerHTML = `
-        <div class="badge badge-confidence">
-            Reliability: ${audit.confidence}
-        </div>
-
-        <div class="panel-header">
-            <h2>${props.Name || 'Unnamed Road'}</h2>
-            <p class="road-id">Link ID: ${props.id || 'N/A'}</p>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-item highlight">
-                <label>Engineering Rank</label>
-                <div class="value">#${audit.engRank}</div>
-            </div>
-            <div class="stat-item">
-                <label>Allocation Rank</label>
-                <div class="value">#${audit.alloRank}</div>
-            </div>
-        </div>
-
-        <div class="audit-section">
-            <h3>
-                <span>Decision Alignment Score</span>
-                <span class="badge ${audit.flag.class}">${audit.flag.icon} ${audit.flag.label}</span>
-            </h3>
-            
-            <div class="score-progress">
-                <div id="score-fill" class="score-fill"></div>
-                <!-- Marker shows where the score sits relative to thresholds -->
-                <div class="score-marker" style="left: ${audit.alignmentScore}%"></div>
-            </div>
-            <div style="text-align: right; font-weight: 700; font-size: 1.2rem; font-family: 'Outfit';">
-                ${audit.alignmentScore} / 100
-            </div>
-        </div>
-
-        <div class="audit-section">
-            <h3>Factor Breakdown</h3>
-            <div class="factors-list">
-                ${audit.factors.map(f => `
-                    <div class="factor-item">
-                        <div class="factor-header">
-                            <span>${f.name}</span>
-                            <span>${f.val}%</span>
-                        </div>
-                        <div class="factor-bar-bg">
-                            <div class="factor-bar-fill" style="width: 0%" data-val="${f.val}%"></div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-
-        <div class="explanation-box">
-            <p>${explanationText}</p>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-item">
-                <label>Link Length</label>
-                <div class="value">${props.Panjang || props.Length_Seg || 'N/A'} m</div>
-            </div>
-            <div class="stat-item">
-                <label>Survey Year</label>
-                <div class="value">2025</div>
-            </div>
-        </div>
-    `;
-
-    panel.classList.remove('hidden');
-
-    // Trigger animations after a micro-task
-    setTimeout(() => {
-        const scoreFill = document.getElementById('score-fill');
-        if (scoreFill) scoreFill.style.width = audit.alignmentScore + '%';
-
-        document.querySelectorAll('.factor-bar-fill').forEach(el => {
-            el.style.width = el.getAttribute('data-val');
-        });
-    }, 50);
-}
 
 // --- Search Logic ---
 let searchData = [];
@@ -418,7 +99,7 @@ window.selectRoad = function (id) {
         document.getElementById('road-search').value = '';
 
         map.fitBounds(item.bounds, { maxZoom: 18, padding: [50, 50] });
-        openDetailPanel(item.properties, currentView === 'stationing' ? 'stationing' : 'link');
+        openDetailPanel(item.properties);
 
         if (highlightLayer) map.removeLayer(highlightLayer);
 
@@ -449,8 +130,7 @@ function setupEventListeners() {
     document.getElementById('mode-allocation').addEventListener('click', () => setMapMode('allocation'));
     document.getElementById('mode-audit').addEventListener('click', () => setMapMode('audit'));
 
-    document.getElementById('toggle-roads').addEventListener('click', () => switchLayer('roads'));
-    document.getElementById('toggle-stationing').addEventListener('click', () => switchLayer('stationing'));
+
     document.getElementById('close-panel').addEventListener('click', () => {
         document.getElementById('side-panel').classList.add('hidden');
     });
@@ -480,6 +160,30 @@ function setupEventListeners() {
     });
 }
 
+function getTooltipContent(feature) {
+    const audit = auditDataMap.get(feature.properties.uid || feature.properties.id);
+    const roadName = feature.properties.name || feature.properties.Name || 'Unnamed Link';
+    const length = parseFloat(feature.properties.length || 0).toFixed(1);
+
+    let modeLabel, modeValue;
+    if (currentMode === 'audit') {
+        modeLabel = 'Alignment';
+        modeValue = (audit ? audit.alignmentScore : '?') + '%';
+    } else if (currentMode === 'allocation') {
+        modeLabel = 'Status';
+        modeValue = feature.properties.is_allocated === 1 ? 'Allocated' : 'Unallocated';
+    } else {
+        modeLabel = 'Engineering Rank';
+        modeValue = '#' + (audit ? audit.engRank : '?');
+    }
+
+    return `
+        <div class="tooltip-title">${roadName}</div>
+        <div class="tooltip-info">Length: ${length} m</div>
+        <div class="tooltip-info">${modeLabel}: <span class="tooltip-score">${modeValue}</span></div>
+    `;
+}
+
 function setMapMode(mode) {
     currentMode = mode;
 
@@ -490,7 +194,15 @@ function setMapMode(mode) {
 
     // Refresh layer styles
     if (roadLayer) roadLayer.setStyle(f => getFeatureStyle(f));
-    if (stationingLayer) stationingLayer.setStyle(f => getFeatureStyle(f));
+
+    // Refresh all tooltip content for the new mode
+    if (roadLayer) {
+        roadLayer.eachLayer(layer => {
+            if (layer.feature) {
+                layer.setTooltipContent(getTooltipContent(layer.feature));
+            }
+        });
+    }
 
     updateLegend();
 }
@@ -506,7 +218,7 @@ function getFeatureStyle(feature) {
         const rank = audit ? audit.engRank : 999;
         // High priority = Deep Red/Pink
         return {
-            color: rank <= 50 ? '#ff4d6d' : (rank <= 150 ? '#f6ad55' : '#00d4aa'),
+            color: rank <= 50 ? '#ff4d6d' : (rank <= 200 ? '#f6ad55' : '#00d4aa'),
             weight: rank <= 50 ? 6 : 4,
             opacity: 0.8
         };
@@ -519,12 +231,12 @@ function getFeatureStyle(feature) {
         };
     } else {
         // Audit Mode: Color by alignment flag
-        const color = audit?.flag?.class === 'flag-significant' ? '#ff4d6d' : 
-                     (audit?.flag?.class === 'flag-moderate' ? '#f6ad55' : '#00d4aa');
+        const color = audit?.alignmentScore < 40 ? '#ff4d6d' : 
+                     (audit?.alignmentScore < 75 ? '#f6ad55' : '#00d4aa');
         return {
             color: color,
-            weight: 5,
-            opacity: 0.9
+            weight: audit?.alignmentScore < 40 ? 8 : 5,
+            opacity: audit?.alignmentScore < 40 ? 1.0 : 0.8
         };
     }
 }
@@ -549,20 +261,7 @@ async function loadBaseRoads() {
                 return getFeatureStyle(feature);
             },
             onEachFeature: (feature, layer) => {
-                const audit = auditDataMap.get(feature.properties.uid);
-                const roadName = feature.properties.name || feature.properties.Name || 'Unnamed Link';
-                const length = parseFloat(feature.properties.length || 0).toFixed(1);
-                
-                layer.bindTooltip(`
-                    <div class="tooltip-title">${roadName}</div>
-                    <div class="tooltip-info">Length: ${length} m</div>
-                    <div class="tooltip-info">${currentMode === 'audit' ? 'Alignment' : (currentMode === 'allocation' ? 'Status' : 'Engineering Rank')}: 
-                        <span class="tooltip-score">
-                            ${currentMode === 'audit' ? audit.alignmentScore + '%' : 
-                             (currentMode === 'allocation' ? (feature.properties.is_allocated ? 'Allocated' : 'Unallocated') : '#' + audit.engRank)}
-                        </span>
-                    </div>
-                `, { sticky: true });
+                layer.bindTooltip(getTooltipContent(feature), { sticky: true });
 
                 layer.on({
                     mouseover: (e) => {
@@ -577,36 +276,78 @@ async function loadBaseRoads() {
                         roadLayer.resetStyle(l);
                     },
                     click: (e) => {
-                        openDetailPanel(feature.properties, 'link');
+                        openDetailPanel(feature.properties);
                         L.DomEvent.stopPropagation(e);
                     }
                 });
             }
         }).addTo(map);
 
+        // Update Audit Summary Stats Dynamically
+        const totalLength = geo.features.reduce((sum, f) => sum + parseFloat(f.properties.length || 0), 0);
+        const networkKm = (totalLength / 1000).toFixed(1);
+
+        const auditValues = Array.from(auditDataMap.values());
+        const flaggedSegments = auditValues.filter(a => a.alignmentScore < 75).length;
+
+        const neglectedPriority = geo.features.filter(f => {
+            const rank = parseInt(f.properties.rank);
+            return rank <= 150 && f.properties.is_allocated !== 1;
+        }).length;
+
+        const politicallyFavored = geo.features.filter(f => {
+            const rank = parseInt(f.properties.rank);
+            return rank > 500 && f.properties.is_allocated === 1;
+        }).length;
+
+        document.getElementById('stat-coverage').innerText = networkKm + ' km';
+        document.getElementById('stat-flagged').innerText = flaggedSegments;
+        document.getElementById('stat-neglected').innerText = neglectedPriority;
+        document.getElementById('stat-favored').innerText = politicallyFavored;
+
         // Add Anomalous Hotspots for Demo
         initAnomalies();
+
+        // Initialize legend from JS (replaces static HTML)
+        updateLegend();
 
     } catch (err) {
         console.error("Link load error:", err);
     }
 }
 
-function initAnomalies() {
-    const anomalies = [
-        { lat: -1.6153, lng: 103.5852, name: "ID_00120 - Neglected Priority", score: 42 },
-        { lat: -1.6028, lng: 103.5748, name: "ID_00450 - Political Favor", score: 38 },
-        { lat: -1.5952, lng: 103.5735, name: "ID_00890 - Allocation Gap", score: 31 }
-    ];
+async function initAnomalies() {
+    try {
+        const res = await fetch('data/anomalies.json');
+        if (!res.ok) {
+            console.warn('anomalies.json not found, using fallback data');
+            renderAnomalyMarkers([
+                { lat: -1.6153, lng: 103.5852, name: "Neglected Priority Road", score: 42, type: "neglect" },
+                { lat: -1.6028, lng: 103.5748, name: "Politically Favored Road", score: 38, type: "favor" },
+                { lat: -1.5952, lng: 103.5735, name: "Allocation Gap Detected", score: 31, type: "gap" }
+            ]);
+            return;
+        }
+        const anomalies = await res.json();
+        renderAnomalyMarkers(anomalies);
+    } catch (err) {
+        console.warn('Error loading anomalies:', err);
+    }
+}
 
+function renderAnomalyMarkers(anomalies) {
     anomalies.forEach(a => {
         const icon = L.divIcon({
             className: 'pulse-marker',
             iconSize: [20, 20]
         });
+        const label = a.name || a.road_name || 'Anomaly';
+        const score = a.score || a.alignment_score || '?';
+        const typeLabel = a.type === 'neglect' ? '⚠️ Neglected' : 
+                         (a.type === 'favor' ? '🔴 Favored' : '🟡 Gap');
         L.marker([a.lat, a.lng], { icon: icon })
             .addTo(map)
-            .bindTooltip(`<strong>${a.name}</strong><br>Alignment Score: ${a.score}/100`, {
+            .bindTooltip(`<strong>${label}</strong><br>${typeLabel}<br>Alignment: ${score}/100`, {
                 direction: 'top',
                 offset: [0, -10]
             });
@@ -662,10 +403,7 @@ function getAuditMetrics(props) {
 /**
  * Generates plain-language explanation for a road's audit status.
  */
-function generateExplanation(audit, props, isStationing) {
-    if (isStationing) {
-        return `Audit Segment: <strong>STA ${props.STA_Start} - ${props.STA_End}</strong>. This specific 25m section accounts for <strong>Rank #${audit.engRank}</strong> in the infrastructure maintenance queue.`;
-    }
+function generateExplanation(audit, props) {
 
     const isAllocated = props.is_allocated === 1;
     const isTopPriority = audit.engRank <= 150; // Threshold for high engineering priority
@@ -689,14 +427,13 @@ function generateExplanation(audit, props, isStationing) {
     `;
 }
 
-function openDetailPanel(props, type) {
+function openDetailPanel(props) {
     const panel = document.getElementById('side-panel');
     const content = document.getElementById('panel-content');
-    const isStationing = type === 'stationing';
 
     // Get simulated audit data
     const audit = auditDataMap.get(props.uid || props.id) || getAuditMetrics(props);
-    const explanationText = generateExplanation(audit, props, isStationing);
+    const explanationText = generateExplanation(audit, props);
 
     content.innerHTML = `
         <div class="badge badge-confidence">

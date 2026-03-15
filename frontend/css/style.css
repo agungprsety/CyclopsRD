@@ -751,6 +751,10 @@ h3,
     color: #ff4d6d;
 }
 
+.stat-value.warning {
+    color: #f6ad55;
+}
+
 /* Pulsing Anomaly Markers */
 .pulse-marker {
     width: 20px;
@@ -804,4 +808,30 @@ h3,
     100% {
         opacity: 0.5;
     }
+}
+
+/* Proof of Concept Disclaimer */
+.poc-disclaimer {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    backdrop-filter: var(--glass-blur);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    pointer-events: none;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    max-width: 600px;
+    width: 90%;
+    font-family: 'Inter', sans-serif;
+}
+
+.poc-disclaimer strong {
+    color: var(--warning);
 }
