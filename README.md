@@ -160,7 +160,7 @@ We compare the pure engineering rank against the politically-influenced allocati
 | Top 25% Need + Not Funded | ✅ High | ❌ Unallocated | 🟡 **Neglect** |
 | Bottom 50% Need + Funded | ❌ Low | ✅ Allocated | 🔴 **Favoritism** |
 
-> **The Story is in the Tails:** While an average alignment score might seem relatively high city-wide, CyclopsRD is designed to find the critical outliers where the system breaks down. In our Jambi data, the system successfully exposed **108 flagged segments**, comprising **41 neglected high-priority roads** and **12 clear instances of political favoritism**.
+> **The Story is in the Tails:** While an average alignment score might seem relatively high city-wide, CyclopsRD is designed to find the critical outliers where the system breaks down. In our Jambi data, the system successfully exposed **38 flagged segments**, comprising **25 neglected high-priority roads** and **24 clear instances of political favoritism** (based on refined engineering-budget gap analysis).
 
 ---
 

@@ -292,14 +292,15 @@ async function loadBaseRoads() {
 
         const neglectedPriority = geo.features.filter(f => {
             const rank = parseInt(f.properties.rank);
-            return rank <= 150 && f.properties.is_allocated !== 1;
+            return rank <= 250 && f.properties.is_allocated !== 1;
         }).length;
 
         const politicallyFavored = geo.features.filter(f => {
             const rank = parseInt(f.properties.rank);
-            return rank > 500 && f.properties.is_allocated === 1;
+            return rank > 300 && f.properties.is_allocated === 1;
         }).length;
 
+        document.getElementById('stat-total').innerText = geo.features.length;
         document.getElementById('stat-coverage').innerText = networkKm + ' km';
         document.getElementById('stat-flagged').innerText = flaggedSegments;
         document.getElementById('stat-neglected').innerText = neglectedPriority;
