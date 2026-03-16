@@ -290,15 +290,8 @@ async function loadBaseRoads() {
         const auditValues = Array.from(auditDataMap.values());
         const flaggedSegments = auditValues.filter(a => a.alignmentScore < 75).length;
 
-        const neglectedPriority = geo.features.filter(f => {
-            const rank = parseInt(f.properties.rank);
-            return rank <= 250 && f.properties.is_allocated !== 1;
-        }).length;
-
-        const politicallyFavored = geo.features.filter(f => {
-            const rank = parseInt(f.properties.rank);
-            return rank > 300 && f.properties.is_allocated === 1;
-        }).length;
+        const neglectedPriority = auditValues.filter(a => a.alignmentScore >= 40 && a.alignmentScore < 75).length;
+        const politicallyFavored = auditValues.filter(a => a.alignmentScore < 40).length;
 
         document.getElementById('stat-total').innerText = geo.features.length;
         document.getElementById('stat-coverage').innerText = networkKm + ' km';

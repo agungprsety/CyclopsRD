@@ -123,7 +123,7 @@ def simulate_allocation():
         propensity = (inverted_rank ** 0.8) * multiplier
         
         # Add random noise to simulate 'irregularities'
-        noise = random.uniform(-0.1, 0.1)
+        noise = random.uniform(-0.4, 0.4)
         
         return propensity + noise
 

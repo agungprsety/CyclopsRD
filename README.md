@@ -160,7 +160,7 @@ We compare the pure engineering rank against the politically-influenced allocati
 | Top 25% Need + Not Funded | ✅ High | ❌ Unallocated | 🟡 **Neglect** |
 | Bottom 50% Need + Funded | ❌ Low | ✅ Allocated | 🔴 **Favoritism** |
 
-> **The Story is in the Tails:** While an average alignment score might seem relatively high city-wide, CyclopsRD is designed to find the critical outliers where the system breaks down. In our Jambi data, the system successfully exposed **38 flagged segments**, comprising **25 neglected high-priority roads** and **24 clear instances of political favoritism** (based on refined engineering-budget gap analysis).
+> **The Story is in the Tails:** While an average alignment score might seem relatively high city-wide, CyclopsRD is designed to find the critical outliers where the system breaks down. In our Jambi data, the system successfully exposed **111 flagged segments**, comprising **98 neglected high-priority roads** and **13 clear instances of political favoritism** (based on refined engineering-budget gap analysis).
 
 ---
 
@@ -256,8 +256,6 @@ CyclopsRD/
 │
 ├── data/                           # Raw + intermediate pipeline outputs
 ├── methodology_overview.md         # Full technical methodology document
-├── hackathon.md                    # Original hackathon proposal + startup strategy
-├── demo_script.md                  # 5-minute pitch rehearsal script
 └── README.md                       # ← You are here
 ```
 
@@ -274,7 +272,6 @@ CyclopsRD/
 | Charts | Chart.js | Clean bar/doughnut charts with animation |
 | Styling | Vanilla CSS | Dark theme, glassmorphism panels, micro-animations |
 | Testing | Pytest | Validates rank uniqueness, allocation logic, export integrity |
-| Hosting | Vercel / Static | Zero failure modes — static files never crash on demo day |
 
 ---
 
